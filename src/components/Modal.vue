@@ -1,19 +1,54 @@
 <script setup>
-import { ref } from 'vue';
-const emit = defineEmits(['getData']);
+import { ref, onMounted } from 'vue';
+const emit = defineEmits(['getData', 'modalHide', 'updateTask']);
 const nameError = ref();
 const timeError = ref();
+const formTitle = ref();
+const subBtnName = ref();
+const isActive = ref(true);
 const taskData = ref({
     name: '',
     time: '',
 });
-function dataValidation(){
+const props = defineProps({
+    allTasks: Array,
+    taskIndex: Number,
+});
+defineExpose({
+    changeFormData: (dataIndex) => {
+        isActive.value = false;
+        formTitle.value = "Edit Task";
+        subBtnName.value = "Update Task";
+        taskData.value = {
+            name: props.allTasks[dataIndex].name,
+            time: props.allTasks[dataIndex].time,
+        }
+    },
+    addNewTaskTitle: () => {
+        isActive.value = true;
+        formTitle.value = "Add New Task";
+        subBtnName.value = "Add Task";
+        taskData.value = {
+                name: '',
+                time: '',
+            }
+    }
+});
+
+function modalClose(){
+    emit('modalHide');
+    taskData.value = {
+            name: '',
+            time: '',
+        } 
+}
+function dataValAdd(){
     if(taskData.value.name.length == 0){  
         nameError.value = 'Please insert your task name';  
     } else if (taskData.value.time.length == 0){ 
         timeError.value = 'Please insert your task time'; 
     } else {
-        emit('getData', taskData);
+        emit('getData', JSON.parse(JSON.stringify(taskData.value)));
         taskData.value = {
             name: '',
             time: '',
@@ -28,6 +63,23 @@ function dataValidation(){
         timeError.value = '';
     }
 }
+function dataValUpdate(){
+    if(taskData.value.name.length == 0){  
+        nameError.value = 'Please insert your task name';  
+    } else if (taskData.value.time.length == 0){ 
+        timeError.value = 'Please insert your task time'; 
+    } else {
+        emit('updateTask', JSON.parse(JSON.stringify(taskData.value)));
+        nameError.value = '';
+        timeError.value = '';
+    }
+    if(taskData.value.name.length > 0){
+        nameError.value = ''; 
+    }
+    if(taskData.value.time.length > 0){
+        timeError.value = '';
+    } 
+}
 </script>
 <template>
     <div class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -37,35 +89,35 @@ function dataValidation(){
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
 
                 <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                    <form @submit.prevent="dataValidation()" class="w-full">
+                    <form @submit.prevent="isActive ? dataValAdd() : dataValUpdate()" class="w-full">
                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                         <div class="sm:flex sm:items-start">
                             <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
                                 <i class="fa-solid fa-list-check"></i>
                             </div>
                             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-5/6">
-                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Add New Task</h3>
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">{{ formTitle }}</h3>
                                 
                                     <div class="sm:col-span-4 mt-3 w-full">
                                         <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Task name</label>
                                         <div class="mt-2">
                                             <input v-model="taskData.name" id="name" name="name" type="text" placeholder="e.g. Task 1" class="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                            <span class="text-red-500">{{ nameError }}</span>
+                                        <span class="text-red-500">{{ nameError }}</span>
                                         </div>
                                     </div>
                                     <div class="sm:col-span-4 w-full mt-3">
                                         <label for="time" class="block text-sm font-medium leading-6 text-gray-900">Task time</label>
                                         <div class="mt-2">
                                             <input v-model="taskData.time" id="time" name="time" type="number" class="block w-full rounded-md border-0 px-1.5 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="e.g. 60">
-                                            <span class="text-red-500">{{ timeError }}</span>
+                                        <span class="text-red-500">{{ timeError }}</span>
                                         </div>
                                     </div>
                             </div>
                         </div>
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:ml-3 sm:w-auto">Add Task</button>
-                        <button @click="$emit('modalShow')" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:ml-3 sm:w-auto">{{ subBtnName }}</button>
+                        <button @click="modalClose" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
   
                     </div>
                 </form>
