@@ -48,8 +48,7 @@ function updateTask(updateData){
   <DeleteTask v-show="deleteShow" @modal-hide="deleteShow = false" @delete-item="removeTask" />
   <section class="p-10 bg-green-200 m-auto rounded-md sm:w-4/5 md:w-3/5 lg:w-2/5">
     <div class="flex flex-col">
-      <h1 class="text-3xl font-semibold">Vue.js Task List</h1>
-      <h2 class="mt-2 text-lg font-semibold">Assignment 1</h2>
+      <h1 class="text-3xl font-semibold">Task List</h1>
       <div class="m-auto mt-8 flex flex-col items-start w-full">
         <!-- Use the Modal here -->
         <button @click="childFuncModalOpn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700">Add New Task</button>
